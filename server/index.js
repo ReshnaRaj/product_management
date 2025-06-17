@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import dbconnection from "./config/dbconnection.js";
 
 import authRoutes from "./routes/authRoute.js";
+import categoryRoutes from "./routes/categoryRoute.js";
 
 dotenv.config();
 const app = express();
@@ -13,6 +14,9 @@ app.use(express.json());
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/category",categoryRoutes)
+
+
 
 
 

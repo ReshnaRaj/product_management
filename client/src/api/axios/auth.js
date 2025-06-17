@@ -1,8 +1,5 @@
 
 import { publicAxios, privateAxios } from '../axios/axiosInstance';
-
- 
-
 // Public routes - use publicAxios
 export const loginUser = async (formData) => {
   try {
