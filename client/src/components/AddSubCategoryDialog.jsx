@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 /* other imports … */
 
 export default function AddSubCategoryDialog({ open, setOpen, onSave, categories}) {
-  console.log(categories, "categories in subcat dialog");
+  
   /* state … */
  const [name, setName] = useState("");
   const [parentId, setParentId] = useState("");

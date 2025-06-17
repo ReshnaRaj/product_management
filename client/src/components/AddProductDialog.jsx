@@ -6,6 +6,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,9 +25,11 @@ export default function AddProductDialog({
   onSave,
   subCategories = [],
 }) {
+   const [error, setError] = useState("");
+
   const [product, setProduct] = useState({
     title: "",
-    brand: "",
+    
     description: "",
     subCategory: "",
     variants: [{ ram: "", price: "", qty: "" }],
@@ -54,10 +57,46 @@ export default function AddProductDialog({
   const handleImageChange = (e) =>
     setProduct({ ...product, images: [...e.target.files] });
 
-  const handleSubmit = () => {
-    onSave(product);
-    setOpen(false);
-  };
+  const handleSubmit = async () => {
+  // Validate
+  const invalidVariant = product.variants.some(
+    (v) => !v.ram?.trim() || !v.price || !v.qty
+  );
+
+  if (product.variants.length === 0 || invalidVariant) {
+    setError("At least one variant is required with RAM, price, and quantity.");
+    return;
+  }
+
+  setError("");
+
+  try {
+    await onSave(product); // assuming this sends the request
+
+    toast.success(
+       "Product added successfully!"
+      );
+    setProduct({
+      title: "",
+      description: "",
+      subCategory: "",
+      variants: [{ ram: "", price: "", qty: "" }],
+      images: [],
+    });
+
+    // Reset form
+     
+
+    setOpen(false); // Close modal
+  } catch (err) {
+    toast({
+      title: "Error",
+      description: err.message || "Failed to add product",
+      variant: "destructive",
+    });
+  }
+};
+
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -96,6 +135,10 @@ export default function AddProductDialog({
               <Button variant="secondary" size="sm" onClick={addVariant}>
                 Add variants
               </Button>
+              {error && (
+  <p className="text-red-500 text-center text-sm mt-4">{error}</p>
+)}
+
             </div>
           </div>
 
@@ -110,7 +153,7 @@ export default function AddProductDialog({
               </SelectTrigger>
               <SelectContent>
                 {subCategories.map((sc) => (
-                  <SelectItem key={sc.id} value={sc.id}>
+                  <SelectItem key={sc._id} value={sc._id}>
                     {sc.name}
                   </SelectItem>
                 ))}

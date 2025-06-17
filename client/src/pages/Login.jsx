@@ -22,7 +22,7 @@ export default function Login() {
     setError("");
     try {
       const response = await loginUser(formData);
-      console.log("Login Response:", response);
+     
       const userData = {
         user: {
           id: response.user.id,

@@ -1,5 +1,5 @@
 import { ChevronRight, ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useState,useMemo } from "react";
 
 const data = [
   {
@@ -16,8 +16,22 @@ const data = [
   },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ categories = [], subCategories = [] }) {
+  
   const [open, setOpen] = useState({});
+  
+ const tree = useMemo(() =>
+  categories.map((cat) => ({
+    ...cat,
+    subs: subCategories.filter((sc) =>
+      sc.category === cat._id || sc.categoryId === cat._id || sc.category?._id === cat._id
+    ),
+  })),
+  [categories, subCategories]
+);
+
+
+ 
 
   return (
     <aside className="w-56 border-r p-4 space-y-6">
@@ -30,30 +44,30 @@ export default function Sidebar() {
         <h4 className="text-sm font-semibold mb-2">Categories</h4>
 
         <ul className="space-y-1">
-          {data.map((cat) => (
-            <li key={cat.name}>
+          {tree.map((cat) => (
+            <li key={cat._id}>
               <button
                 className="flex items-center justify-between w-full text-left text-xs hover:text-primary"
                 onClick={() =>
-                  setOpen((prev) => ({ ...prev, [cat.name]: !prev[cat.name] }))
+                  setOpen((prev) => ({ ...prev, [cat._id]: !prev[cat._id] }))
                 }
               >
                 {cat.name}
-                {open[cat.name] ? (
+                {open[cat._id] ? (
                   <ChevronDown className="h-3 w-3" />
                 ) : (
                   <ChevronRight className="h-3 w-3" />
                 )}
               </button>
 
-              {open[cat.name] && (
+              {open[cat._id] && (
                 <ul className="pl-4 mt-1 space-y-1">
-                  {cat.sub.map((s) => (
+                  {cat.subs.map((s) => (
                     <li
-                      key={s}
+                      key={s._id}
                       className="text-[11px] cursor-pointer hover:text-primary"
                     >
-                      {s}
+                      {s.name}
                     </li>
                   ))}
                 </ul>

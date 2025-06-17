@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button";
 import AddProductDialog from "@/components/AddProductDialog";
 import AddCategoryDialog from "@/components/AddCategoryDialog";
 import AddSubCategoryDialog from "@/components/AddSubCategoryDialog";
-import { addCategory, addSubCategory, getCategory } from "@/api/axios/category";
+import { addCategory, addSubCategory, getCategory, getSubCategory } from "@/api/axios/category";
+import { addProduct } from "@/api/axios/product";
 
 // dummy products
-const demoProducts = [...Array(10)].map((_, i) => ({
+const demoProducts = [...Array(4)].map((_, i) => ({
   id: i,
   name: "HP AMD Ryzen 3",
   price: (519 + i).toFixed(2),
@@ -27,9 +28,10 @@ export default function Home() {
  const [allSubCategories, setAllSubCategories] = useState([]); // for sub-categories
  const handleAddCategory = async (name) => {
     try {
-      console.log("Adding category:", name);
+     
       const data = await addCategory({ name }); // ⬅️ API call
       // update local state so UI reflects new category
+      
       setCategories((prev) => [...prev, data.category]);
     } catch (err) {
       alert(err.message || "Failed to add category");
@@ -40,27 +42,63 @@ export default function Home() {
  
       // Call your API to add sub-category here
        const response = await addSubCategory({ name, categoryId: parentId });
-      console.log("Sub-category added:", response);
+ 
       setAllSubCategories((prev) => [...prev, response.subCategory]);
       // update local state or handle response as needed
     } catch (err) {
       alert(err.message || "Failed to add sub-category");
     }
   }
+  const handleAddProduct = async (product) => {
+  try {
+     console.log("Adding product:", product);
+    
+
+   
+    const formData = new FormData();
+    formData.append("name", product.title);
+ 
+    formData.append("description", product.description);
+    formData.append("subCategoryId", product.subCategory);
+    formData.append("variants", JSON.stringify(product.variants));
+    product.images.forEach((file) => formData.append("images", file));
+
+    const res = await addProduct(formData);   // POST /add-product
+    console.log("Product added:", res);
+
+    setShowProduct(false); // close modal
+  } catch (err) {
+    alert(err.message || "Failed to add product");
+  }
+};
+
+
   const fetchCategories = async () => {
     try {
       // Fetch categories from your API
       const response = await getCategory();
-      console.log(response,"responsess")
-      console.log("Fetched categories:", response.name);
+  
+      
       setCategories(response);
     } catch (err) {
       console.error("Failed to fetch categories:", err);
     }
   }
+  const fetchSubCategories = async () => {
+    try {
+      // Fetch sub-categories from your API
+      const response = await getSubCategory();
+       
+      setAllSubCategories(response);
+    } catch (err) {
+      console.error("Failed to fetch sub-categories:", err);
+    }
+  }
   useEffect(()=>{
     fetchCategories();
-  },[])
+    fetchSubCategories()
+  },[]);
+ 
   return (
     <div className="min-h-screen flex flex-col">
       {/* navbar */}
@@ -69,7 +107,12 @@ export default function Home() {
       {/* content */}
       <div className="flex flex-1">
         {/* sidebar */}
-        <Sidebar />
+       {/* sidebar */}
+<Sidebar
+  categories={categories}         
+  subCategories={allSubCategories} 
+/>
+
 
         {/* main */}
         <main className="flex-1 p-6">
@@ -122,8 +165,9 @@ export default function Home() {
        <AddProductDialog
         open={showProduct}
         setOpen={setShowProduct}
-        // subCategories={allSubCategories}
-        // onSave={(data) => dispatch(createProduct(data))}     
+        subCategories={allSubCategories}
+        // onSave={(data) => dispatch(createProduct(data))} 
+        onSave={handleAddProduct}    
       />
       <AddCategoryDialog
         open={showCat}
