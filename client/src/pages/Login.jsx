@@ -21,15 +21,15 @@ export default function Login() {
     e.preventDefault();
     setError("");
     try {
-       const response = await loginUser(formData);
-       console.log("Login Response:", response);
+      const response = await loginUser(formData);
+      console.log("Login Response:", response);
       const userData = {
         user: {
           id: response.user.id,
           name: response.user.name,
-          email: response.user.email
+          email: response.user.email,
         },
-        token: response.token
+        token: response.token,
       };
       dispatch(setCredentials(userData));
       if (response.status === 200) {
@@ -48,7 +48,9 @@ export default function Login() {
         {/* LEFT – LOGIN FORM */}
         <div className="flex-1 flex flex-col justify-center px-8 py-10 sm:px-12">
           <h2 className="text-3xl font-bold text-[#d89e00] mb-8 leading-tight text-center">
-            Sign In to<br />Your Account
+            Sign In to
+            <br />
+            Your Account
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-4 mb-6">
@@ -87,7 +89,10 @@ export default function Login() {
               </span>
             </div>
 
-            <Button className="w-full bg-[#d89e00] hover:bg-[#c58900]" type="submit">
+            <Button
+              className="w-full bg-[#d89e00] hover:bg-[#c58900]"
+              type="submit"
+            >
               SIGN IN
             </Button>
           </form>
@@ -106,7 +111,8 @@ export default function Login() {
             Hello Friend!
           </h2>
           <p className="text-center text-sm mb-8 max-w-[240px] leading-relaxed">
-            Enter your personal details and<br />
+            Enter your personal details and
+            <br />
             start your journey with us
           </p>
           <Button
