@@ -1,6 +1,6 @@
 
 import { publicAxios, privateAxios } from '../axios/axiosInstance';
-// Public routes - use publicAxios
+ 
 export const loginUser = async (formData) => {
   try {
     const res = await publicAxios.post('/auth/login', formData);
@@ -28,7 +28,7 @@ export const signupUser = async (formData) => {
     }
 };
 
-// Protected route example - use privateAxios
+ 
 export const getUserProfile = async () => {
     try {
         const res = await privateAxios.get('/auth/profile');

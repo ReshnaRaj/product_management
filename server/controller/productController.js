@@ -1,5 +1,6 @@
 import Product from '../models/ProductSchema.js';
 import Category from '../models/CategorySchema.js';
+import Wishlist from "../models/WishlistSchema.js";
 import SubCategory from '../models/SubCategorySchema.js';
 /* ----------  POST /api/product  ---------- */
 export const addProduct = async (req, res) => {
@@ -62,15 +63,110 @@ export const addProduct = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+ 
 export const getProducts = async (req, res) => {
   try {
-    const products = await Product.find()
-      .populate("subCategoryId", "name")
-      .select("-__v -createdAt -updatedAt");
-    
-    res.status(200).json(products);
+    /* ---------- 1. pagination ---------- */
+    const page  = Math.max(1, parseInt(req.query.page)  || 1);
+    const limit = Math.max(1, parseInt(req.query.limit) || 12);
+    const skip  = (page - 1) * limit;
+
+    /* ---------- 2. fetch + populate ---------- */
+    const products = await Product.find({})
+      .populate("subCategoryId", "name")   // remove if you don’t need the name
+      .sort({ createdAt: -1 })             // newest first
+      .skip(skip)
+      .limit(limit)
+      .lean();                             // plain JS objects
+
+    const total = await Product.countDocuments({});
+
+    /* ---------- 3. massage each product ---------- */
+    const urlPrefix = `${req.protocol}://${req.get("host")}`;
+
+    const formatted = products.map((p) => {
+      // absolute URLs for every image
+      const images = p.images.map((img) =>
+        img.startsWith("http") ? img : `${urlPrefix}${img}`
+      );
+
+      // cheapest variant price
+      const cheapest = Math.min(...p.variants.map((v) => v.price));
+
+      return {
+        ...p,
+        images,
+        cheapestPrice: cheapest,
+      };
+    });
+
+    /* ---------- 4. response ---------- */
+    res.status(200).json({
+      page,
+      pages: Math.ceil(total / limit),
+      total,
+      products: formatted,
+    });
   } catch (err) {
     console.error("Get Products error:", err);
     res.status(500).json({ message: "Server error" });
   }
-}
+};
+
+
+
+
+/* -------- GET /api/wishlist -------- */
+export const getWishlist = async (req, res) => {
+  const userId = req.user.id;
+
+  try {
+    const wl = await Wishlist.findOne({ user: userId })
+      .populate("products", "title images variants") // select what you need
+      .lean();
+
+    res.json(wl?.products || []);
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+/* -------- POST /api/wishlist/add -------- */
+export const addToWishlist = async (req, res) => {
+   
+  const userId = req.user.id;
+
+  const { productId } = req.body;
+
+  try {
+    const wl = await Wishlist.findOneAndUpdate(
+      { user: userId },
+      { $addToSet: { products: productId } },  
+      { new: true, upsert: true }
+    );
+
+    res.status(200).json({ wishlist: wl.products });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+/* -------- POST /api/wishlist/remove -------- */
+export const removeFromWishlist = async (req, res) => {
+  const userId = req.user.id;
+  const { productId } = req.body;
+
+  try {
+    const wl = await Wishlist.findOneAndUpdate(
+      { user: userId },
+      { $pull: { products: productId } },
+      { new: true }
+    );
+
+    res.status(200).json({ wishlist: wl.products });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+

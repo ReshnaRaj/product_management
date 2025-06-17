@@ -33,7 +33,7 @@ privateAxios.interceptors.request.use(
     }
 );
 
-// Common response interceptor for both instances
+ 
 const responseInterceptor = (response) => response;
 const errorInterceptor = (error) => {
     if (error.response?.status === 401) {

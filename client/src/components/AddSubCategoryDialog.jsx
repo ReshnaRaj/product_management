@@ -4,7 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,      // ✨ NEW
+  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
@@ -16,12 +16,14 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-/* other imports … */
 
-export default function AddSubCategoryDialog({ open, setOpen, onSave, categories}) {
-  
-  /* state … */
- const [name, setName] = useState("");
+export default function AddSubCategoryDialog({
+  open,
+  setOpen,
+  onSave,
+  categories,
+}) {
+  const [name, setName] = useState("");
   const [parentId, setParentId] = useState("");
   const empty = categories.length === 0;
 
@@ -29,32 +31,24 @@ export default function AddSubCategoryDialog({ open, setOpen, onSave, categories
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
         className="w-96 rounded-xl p-8"
-        /* 👇 link description for a11y */
         aria-describedby="subcat-desc"
       >
         <DialogHeader>
           <DialogTitle className="text-center text-lg font-semibold">
             Add Sub Category
           </DialogTitle>
-
-          
         </DialogHeader>
 
-        {/* controls */}
         <div className="space-y-4 mt-4">
-          {/* parent category Select */}
-          <Select
-            disabled={empty}
-            value={parentId}
-            onValueChange={setParentId}
-          >
+          <Select disabled={empty} value={parentId} onValueChange={setParentId}>
             <SelectTrigger className="w-full">
-              <SelectValue placeholder={empty ? "No categories found" : "Select category"} />
+              <SelectValue
+                placeholder={empty ? "No categories found" : "Select category"}
+              />
             </SelectTrigger>
 
             <SelectContent>
               {categories.map((c) => (
-              
                 <SelectItem key={c._id} value={c._id}>
                   {c.name}
                 </SelectItem>

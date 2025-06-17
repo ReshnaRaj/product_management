@@ -77,7 +77,7 @@ export const addSubCategory = async (req, res) => {
 export const getSubCategory = async (req, res) => {
   try {
    const subCategories = await SubCategory.find().populate("categoryId");
-    console.log("Fetched sub-categories:", subCategories);
+    
     res.status(200).json(subCategories);
   } catch (err) {
     console.error("Get SubCategory error:", err);

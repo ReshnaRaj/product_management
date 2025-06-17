@@ -1,37 +1,22 @@
 import { ChevronRight, ChevronDown } from "lucide-react";
-import { useState,useMemo } from "react";
-
-const data = [
-  {
-    name: "Laptop",
-    sub: ["Dell", "HP", "Apple"],
-  },
-  {
-    name: "Tablet",
-    sub: ["iPad", "Galaxy"],
-  },
-  {
-    name: "Headphones",
-    sub: ["Sony", "Bose"],
-  },
-];
+import { useState, useMemo } from "react";
 
 export default function Sidebar({ categories = [], subCategories = [] }) {
-  
   const [open, setOpen] = useState({});
-  
- const tree = useMemo(() =>
-  categories.map((cat) => ({
-    ...cat,
-    subs: subCategories.filter((sc) =>
-      sc.category === cat._id || sc.categoryId === cat._id || sc.category?._id === cat._id
-    ),
-  })),
-  [categories, subCategories]
-);
 
-
- 
+  const tree = useMemo(
+    () =>
+      categories.map((cat) => ({
+        ...cat,
+        subs: subCategories.filter(
+          (sc) =>
+            sc.category === cat._id ||
+            sc.categoryId === cat._id ||
+            sc.category?._id === cat._id
+        ),
+      })),
+    [categories, subCategories]
+  );
 
   return (
     <aside className="w-56 border-r p-4 space-y-6">

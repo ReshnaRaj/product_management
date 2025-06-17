@@ -1,7 +1,7 @@
 import { privateAxios } from "./axiosInstance";
 export const addCategory = async (formData) => {
   try {
-    console.log("Form Data:", formData); // Debugging line to check formData
+    console.log("Form Data:", formData);  
     const res = await privateAxios.post("/category/add-category", formData);
     return res.data;
   } catch (error) {
