@@ -1,6 +1,4 @@
 import User from "../models/User.js";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 import { hashPassword,comparePassword } from "../utils/hashPassword.js";
 import { generateToken } from "../utils/generateToken.js";
 
@@ -30,10 +28,10 @@ export const signup = async (req, res) => {
 
     // Create token
    
-    const token = generateToken({
-  userId: newUser._id,
-  email: newUser.email,
-})
+//     const token = generateToken({
+//   userId: newUser._id,
+//   email: newUser.email,
+// })
 
     res.status(201).json({
       message: "User created successfully",
@@ -42,7 +40,7 @@ export const signup = async (req, res) => {
         name: newUser.name,
         email: newUser.email,
       },
-      token,
+      // token,
     });
   } catch (err) {
     console.error("Signup Error:", err.message);
@@ -68,11 +66,11 @@ export const login = async (req, res) => {
     }
 
     // Create token
-    const token = jwt.sign(
-      { userId: user._id, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" }
-    );
+       const token = generateToken({
+  userId: user._id,
+  email: user.email,
+})
+console.log("Generated Token:", token);
 
     res.status(200).json({
       message: "Login successful",

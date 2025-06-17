@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Mail, Lock } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "@/store/slices/authSlice";
+import { loginUser } from "@/api/axios/auth";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -20,14 +21,18 @@ export default function Login() {
     e.preventDefault();
     setError("");
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/login",
-        formData
-      );
-      console.log(res.data,"res data");
-        const { user, token } = res.data;
-          dispatch(setCredentials({ user, token }));
-      if (res.status === 200) {
+       const response = await loginUser(formData);
+       console.log("Login Response:", response);
+      const userData = {
+        user: {
+          id: response.user.id,
+          name: response.user.name,
+          email: response.user.email
+        },
+        token: response.token
+      };
+      dispatch(setCredentials(userData));
+      if (response.status === 200) {
      
         navigate("/");
       }
