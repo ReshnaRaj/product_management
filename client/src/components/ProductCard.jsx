@@ -5,7 +5,11 @@ export default function ProductCard({ product, isWished, onToggle }) {
     <div className="relative border rounded-xl p-3 flex flex-col">
       {/* wishlist icon */}
       <button
-        onClick={onToggle}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onToggle();
+        }}
         className="absolute top-2 right-2 cursor-pointer"
       >
         <Heart

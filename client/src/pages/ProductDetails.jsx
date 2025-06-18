@@ -1,20 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
-const product = {
-  name: "HP AMD Ryzen 3",
-  price: 529.99,
-  status: "In stock",
-  variants: [
-    { ram: "4GB", price: 529.99 },
-    { ram: "8GB", price: 629.99 },
-  ],
-  images: [
-    "https://via.placeholder.com/300x200.png?text=Laptop+1",
-    "https://via.placeholder.com/300x200.png?text=Laptop+2",
-    "https://via.placeholder.com/300x200.png?text=Laptop+3",
-  ],
-};
+ 
 
 export default function ProductDetails() {
   const [selectedImg, setSelectedImg] = useState(product.images[0]);
