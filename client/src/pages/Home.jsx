@@ -159,10 +159,22 @@ export default function Home() {
       if (wishlistIds.includes(productId)) {
         await removeFromWishlist(productId);
         setWishlistIds((prev) => prev.filter((id) => id !== productId));
+        // Immediately update the product's isWished property
+        setProducts((prevProducts) =>
+          prevProducts.map((p) =>
+            p._id === productId ? { ...p, isWished: false } : p
+          )
+        );
         toast.success("Removed from wishlist");
       } else {
         await addToWishlist(productId);
         setWishlistIds((prev) => [...prev, productId]);
+        // Immediately update the product's isWished property
+        setProducts((prevProducts) =>
+          prevProducts.map((p) =>
+            p._id === productId ? { ...p, isWished: true } : p
+          )
+        );
         toast.success("Added to wishlist");
       }
     } catch (err) {
