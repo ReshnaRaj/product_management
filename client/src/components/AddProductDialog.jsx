@@ -62,10 +62,7 @@ export default function AddProductDialog({
     setError("Description is required.");
     return;
   }
-  if (product.description.length > 100) {
-    setError("Description must be below 100 characters.");
-    return;
-  }
+  
 
   // Validate images
   if (!product.images || product.images.length === 0) {
