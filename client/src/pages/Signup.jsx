@@ -4,6 +4,7 @@ import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Mail, Lock, User } from "lucide-react";
+import { toast } from "sonner";
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -15,8 +16,17 @@ export default function Signup() {
   });
   const [error, setError] = useState("");
 
-  const handleChange = (e) =>
+  const handleChange = (e) =>{
+     const { name, value } = e.target;
+     if(name==="password" && value.length < 6) {
+        setError("Password must be at least 6 characters long");
+        
+      }
+      else{
+        setError("")
+      }
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,7 +36,7 @@ export default function Signup() {
         "http://localhost:5000/api/auth/signup",
         formData
       );
-
+toast.success("Signup successful");
       if (res.status === 201) navigate("/login");
     } catch (err) {
       setError(err.response?.data?.message || "Signup failed");

@@ -14,7 +14,7 @@ export const loginUser = async (formData) => {
       status: res.status,
     };
   } catch (error) {
-    throw error.response?.data || { message: "Login failed" };
+    throw error
   }
 };
 

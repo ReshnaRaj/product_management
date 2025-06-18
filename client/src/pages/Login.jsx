@@ -7,6 +7,7 @@ import { Mail, Lock } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "@/store/slices/authSlice";
 import { loginUser } from "@/api/axios/auth";
+import { toast } from "sonner";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -14,14 +15,17 @@ export default function Login() {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
 
-  const handleChange = (e) =>
+  const handleChange = (e) =>{
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  setError("");
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     try {
       const response = await loginUser(formData);
+      
 
       const userData = {
         user: {
@@ -32,11 +36,13 @@ export default function Login() {
         token: response.token,
       };
       dispatch(setCredentials(userData));
+      toast.success("Login successful");
       if (response.status === 200) {
         navigate("/");
       }
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
+    console.log(err,"err")
+      setError(err.message || "Login failed");
     }
   };
 

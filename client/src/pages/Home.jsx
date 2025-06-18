@@ -21,6 +21,7 @@ import {
   removeFromWishlist,
 } from "@/api/axios/product";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 
 export default function Home() {
   const [page, setPage] = useState(1);
@@ -41,6 +42,7 @@ export default function Home() {
       const data = await addCategory({ name });
 
       setCategories((prev) => [...prev, data.category]);
+      toast.success("Category added successfully");
     } catch (err) {
       alert(err.message || "Failed to add category");
     }
@@ -50,6 +52,7 @@ export default function Home() {
       const response = await addSubCategory({ name, categoryId: parentId });
 
       setAllSubCategories((prev) => [...prev, response.subCategory]);
+      toast.success("Sub-category added successfully");
     } catch (err) {
       alert(err.message || "Failed to add sub-category");
     }
@@ -150,9 +153,11 @@ export default function Home() {
       if (wishlistIds.includes(productId)) {
         await removeFromWishlist(productId);
         setWishlistIds((prev) => prev.filter((id) => id !== productId));
+        toast.success("Removed from wishlist");
       } else {
         await addToWishlist(productId);
         setWishlistIds((prev) => [...prev, productId]);
+        toast.success("Added to wishlist");
       }
     } catch (err) {
       console.error("Wishlist error:", err);

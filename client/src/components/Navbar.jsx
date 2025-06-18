@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { logout } from "@/store/slices/authSlice";
 import WishlistDrawer from "@/components/WishlistDrawer";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export default function Navbar({
   wishlistCount = 0,
@@ -20,6 +21,7 @@ export default function Navbar({
   const [wishlistOpen, setWishlistOpen] = useState(false);
   const handleLogout = () => {
     dispatch(logout());
+    toast.success("Logged out successfully");
     navigate("/login");
   };
 
