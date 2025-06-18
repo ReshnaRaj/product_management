@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState,useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -24,7 +24,7 @@ export default function AddProductDialog({
   setOpen,
   onSave,
   subCategories = [],
-  initialData = null,
+   initialData = null,
   isEditMode = false,
 }) {
   const [error, setError] = useState("");
@@ -57,64 +57,91 @@ export default function AddProductDialog({
     });
 
   const handleSubmit = async () => {
-    const invalidVariant = product.variants.some(
-      (v) => !v.ram?.trim() || !v.price || !v.qty
-    );
+  // Validate description
+  if (!product.description.trim()) {
+    setError("Description is required.");
+    return;
+  }
+  if (product.description.length > 100) {
+    setError("Description must be below 100 characters.");
+    return;
+  }
 
-    if (product.variants.length === 0 || invalidVariant) {
-      setError(
-        "At least one variant is required with RAM, price, and quantity."
-      );
+  // Validate images
+  if (!product.images || product.images.length === 0) {
+    setError("Please upload at least one image.");
+    return;
+  }
+
+  // Validate variants
+  if (!product.variants.length) {
+    setError("At least one variant is required.");
+    return;
+  }
+  for (let v of product.variants) {
+    if (
+      !v.ram?.toString().trim() ||
+      !v.price?.toString().trim() ||
+      !v.qty?.toString().trim()
+    ) {
+      setError("All variant fields are required.");
       return;
     }
-
-    setError("");
-
-    try {
-      // Pass the entire product object to onSave
-      await onSave({
-        title: product.title,
-        description: product.description,
-        subCategory: product.subCategory,
-        variants: product.variants.map((v) => ({
-          ram: v.ram,
-          price: v.price,
-          qty: v.qty || v.quantity, // Handle both qty and quantity
-        })),
-        images: product.images,
-      });
-
-      toast.success(isEditMode ? "Product updated" : "Product added");
-
-      // Only reset if not in edit mode
-      if (!isEditMode) {
-        setProduct({
-          title: "",
-          description: "",
-          subCategory: "",
-          variants: [{ ram: "", price: "", qty: "" }],
-          images: [],
-        });
-      }
-
-      setOpen(false);
-    } catch (err) {
-      toast.error(err.message || "Failed to save product");
+    if (
+      isNaN(Number(v.ram)) ||
+      isNaN(Number(v.price)) ||
+      isNaN(Number(v.qty))
+    ) {
+      setError("RAM, Price, and Quantity must be numbers.");
+      return;
     }
-  };
+  }
 
-  useEffect(() => {
-    if (open && isEditMode && initialData) {
+  setError("");
+
+  try {
+    await onSave({
+      title: product.title,
+      description: product.description,
+      subCategory: product.subCategory,
+      variants: product.variants.map((v) => ({
+        ram: v.ram,
+        price: v.price,
+        qty: v.qty || v.quantity,
+      })),
+      images: product.images,
+    });
+
+    toast.success(isEditMode ? "Product updated" : "Product added");
+
+    if (!isEditMode) {
       setProduct({
-        title: initialData.title || "",
-        description: initialData.description || "",
-        subCategory: initialData.subCategory || "",
-        variants: initialData.variants || [{ ram: "", price: "", qty: "" }],
-        images: initialData.images || [],
+        title: "",
+        description: "",
+        subCategory: "",
+        variants: [{ ram: "", price: "", qty: "" }],
+        images: [],
       });
     }
-  }, [open, isEditMode, initialData]);
 
+    setOpen(false);
+  } catch (err) {
+    toast.error(err.message || "Failed to save product");
+  }
+};
+  
+useEffect(() => {
+  if (open && isEditMode && initialData) {
+    setProduct({
+      title: initialData.title || "",
+      description: initialData.description || "",
+      subCategory: initialData.subCategory || "",
+      variants: initialData.variants || [{ ram: "", price: "", qty: "" }],
+       images:initialData.images || [],
+    });
+  }
+}, [open, isEditMode, initialData]);
+ 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="max-w-2xl rounded-xl p-6">
@@ -214,30 +241,26 @@ export default function AddProductDialog({
                   />
                 ))} */}
                 {product.images?.map((img, index) => {
-                  const src =
-                    typeof img === "string" ? img : URL.createObjectURL(img);
+  const src =
+    typeof img === "string"                
+      ? img
+      : URL.createObjectURL(img);         
 
-                  return (
-                    <img
-                      key={index}
-                      src={src}
-                      alt={`preview-${index}`}
-                      onClick={() =>
-                        setProduct((prev) => ({
-                          ...prev,
-                          selectedImageIndex: index,
-                        }))
-                      }
-                      className={`w-16 h-16 object-cover rounded border cursor-pointer
-        ${
-          product.selectedImageIndex === index
-            ? "ring-2 ring-[#1e80ff]"
-            : "border-gray-300"
-        }
+  return (
+    <img
+      key={index}
+      src={src}
+      alt={`preview-${index}`}
+      onClick={() =>
+        setProduct((prev) => ({ ...prev, selectedImageIndex: index }))
+      }
+      className={`w-16 h-16 object-cover rounded border cursor-pointer
+        ${product.selectedImageIndex === index ? "ring-2 ring-[#1e80ff]" : "border-gray-300"}
       `}
-                    />
-                  );
-                })}
+    />
+  );
+})}
+
 
                 <label
                   htmlFor="image-upload"
@@ -273,13 +296,23 @@ export default function AddProductDialog({
           >
             {isEditMode ? "UPDATE" : "ADD"}
           </Button>
-          <Button
-            variant="outline"
-            className="border-gray-300 text-gray-700"
-            onClick={() => setOpen(false)}
-          >
-            DISCARD
-          </Button>
+          <button
+  type="button"
+  onClick={() => {
+    setProduct({
+      title: "",
+      description: "",
+      subCategory: "",
+      variants: [{ ram: "", price: "", qty: "" }],
+      images: [],
+    });
+    setError("");
+    setOpen(false);
+  }}
+  className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
+>
+  Discard
+</button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

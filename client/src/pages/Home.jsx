@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import AddProductDialog from "@/components/AddProductDialog";
 import AddCategoryDialog from "@/components/AddCategoryDialog";
 import AddSubCategoryDialog from "@/components/AddSubCategoryDialog";
+import ProductSkeleton from "@/components/ProductSkeleton";
 import {
   addCategory,
   addSubCategory,
@@ -36,6 +37,7 @@ export default function Home() {
   const [allSubCategories, setAllSubCategories] = useState([]); // for sub-categories
   const [products, setProducts] = useState([]); // for products
   const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);
   const API_BASE = "http://localhost:5000";
   const handleAddCategory = async (name) => {
     try {
@@ -58,6 +60,7 @@ export default function Home() {
     }
   };
   const handleAddProduct = async (product) => {
+    setLoading(true);
     try {
       const formData = new FormData();
       formData.append("name", product.title);
@@ -68,7 +71,6 @@ export default function Home() {
 
       const res = await addProduct(formData);
 
-      // Format the new product with proper image URLs
       const formattedProduct = {
         ...res.product,
         images: res.product.images.map((img) =>
@@ -77,12 +79,13 @@ export default function Home() {
         isWished: false,
       };
 
-      // Add new product to the beginning of the list
       setProducts((prevProducts) => [formattedProduct, ...prevProducts]);
       setShowProduct(false);
       toast.success("Product added successfully");
     } catch (err) {
       toast.error(err.message || "Failed to add product");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -105,6 +108,7 @@ export default function Home() {
     }
   };
   const fetchProducts = async (pageNum = 1, searchTerm = "", subCatId = "") => {
+    setLoading(true);
     try {
       const response = await getProducts({
         page: pageNum,
@@ -125,6 +129,8 @@ export default function Home() {
     } catch (err) {
       console.error("Failed to fetch products:", err);
       toast.error("Failed to load products");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -219,20 +225,22 @@ export default function Home() {
 
           {/* products grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
-            {products.map((p) => (
-              <Link to={`/product/${p._id}`} key={p._id}>
-                <ProductCard
-                  key={p._id}
-                  product={{
-                    image: p.images[0],
-                    title: p.title,
-                    price: p.variants[0]?.price ?? 0,
-                  }}
-                  isWished={p.isWished}
-                  onToggle={() => toggleWishlist(p._id)}
-                />
-              </Link>
-            ))}
+            {loading
+              ? Array.from({ length: 8 }).map((_, i) => <ProductSkeleton key={i} />)
+              : products.map((p) => (
+                  <Link to={`/product/${p._id}`} key={p._id}>
+                    <ProductCard
+                      key={p._id}
+                      product={{
+                        image: p.images[0],
+                        title: p.title,
+                        price: p.variants[0]?.price ?? 0,
+                      }}
+                      isWished={p.isWished}
+                      onToggle={() => toggleWishlist(p._id)}
+                    />
+                  </Link>
+                ))}
           </div>
 
           {/* bottom bar */}

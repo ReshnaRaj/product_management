@@ -33,7 +33,7 @@ export default function ProductCard({ product, isWished, onToggle }) {
         className="w-full h-28 object-contain mb-2"
         onError={(e) => {
           setImageError(true);
-          e.target.src = "/placeholder-image.png"; // Add a placeholder image
+          e.target.src = "";  
         }}
       />
 

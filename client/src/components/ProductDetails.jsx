@@ -1,40 +1,80 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
-import { getSingleProduct, updateProduct } from "@/api/axios/product";
+import { getSingleProduct, updateProduct, addToWishlist, removeFromWishlist } from "@/api/axios/product";
 import { Heart } from "lucide-react";
 import AddProductDialog from "./AddProductDialog";
 import { getSubCategory } from "@/api/axios/category";
+import { toast } from "sonner";
+import ProductDetailsSkeleton from "./ProductDetailsSkeleton";
 
 export default function ProductDetails() {
   const { id } = useParams();
   const [product, setProduct] = useState({});
   const [editOpen, setEditOpen] = useState(false);
   const [subCategories, setSubCategories] = useState([]);
+  const [isWished, setIsWished] = useState(false);
+  const [wishlistCount, setWishlistCount] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchProduct();
     fetchSubCategories();
+    fetchWishlistStatus();
+    // eslint-disable-next-line
   }, [id]);
 
   const fetchProduct = async () => {
     try {
+      setLoading(true);
       const response = await getSingleProduct(id);
-
       setProduct(response);
     } catch (error) {
       console.error("Error fetching product:", error);
+    } finally {
+      setLoading(false);
     }
   };
+
   const fetchSubCategories = async () => {
     try {
       const response = await getSubCategory();
-
       setSubCategories(response);
     } catch (error) {
       console.error("Error fetching sub-categories:", error);
     }
   };
+
+  // Fetch wishlist status and count
+  const fetchWishlistStatus = async () => {
+    try {
+      const wishlist = await import("@/api/axios/product").then(mod => mod.getWishlist());
+      setIsWished(wishlist.some((item) => item._id === id));
+      setWishlistCount(wishlist.length);
+    } catch (error) {
+      console.error("Error fetching wishlist:", error);
+    }
+  };
+
+  // Toggle wishlist
+  const handleWishlistToggle = async () => {
+    try {
+      if (isWished) {
+        await removeFromWishlist(id);
+        setIsWished(false);
+        setWishlistCount((c) => c - 1);
+        toast.success("Removed from wishlist");
+      } else {
+        await addToWishlist(id);
+        setIsWished(true);
+        setWishlistCount((c) => c + 1);
+        toast.success("Added to wishlist");
+      }
+    } catch (error) {
+      toast.error("Failed to update wishlist");
+    }
+  };
+
   const handleEditProduct = async (updatedProductData) => {
     try {
       const formData = new FormData();
@@ -71,19 +111,15 @@ export default function ProductDetails() {
     }
   };
 
+  if (loading) return <ProductDetailsSkeleton />;
+
   if (!product) return <p>Loading...</p>;
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Navbar */}
-      <Navbar
-      // wishlistCount={0}
-      // search=""
-      // setSearch={() => {}}
-      // setPage={() => {}}
-      />
+      {/* Pass wishlistCount to Navbar */}
+      <Navbar wishlistCount={wishlistCount} />
       <div className="max-w-6xl   px-15">
-        {" "}
         <div className="text-md text-gray-600 mt-20">
           <Link to="/" className="text-blue-600 hover:underline">
             Home
@@ -119,11 +155,20 @@ export default function ProductDetails() {
           <div>
             <div className="flex items-start justify-between">
               <h1 className="text-2xl font-semibold">{product.title}</h1>
-              {/* <Heart className="w-5 h-5 text-gray-400" /> */}
+              <button
+                onClick={handleWishlistToggle}
+                aria-label={isWished ? "Remove from wishlist" : "Add to wishlist"}
+                className="focus:outline-none"
+              >
+                <Heart
+                  className={`w-6 h-6 transition-colors ${
+                    isWished ? "text-red-500 fill-red-500" : "text-gray-400"
+                  }`}
+                  fill={isWished ? "currentColor" : "none"}
+                />
+              </button>
             </div>
             <p className="mt-2 text-gray-700">{product.description}</p>
-
-            {/* Optional Rating Placeholder */}
 
             {/* Variants */}
             <div className="mt-4 space-y-2">
@@ -164,7 +209,7 @@ export default function ProductDetails() {
                 product.variants?.map((v) => ({
                   ram: v.ram,
                   price: v.price,
-                  qty: v.quantity || v.qty, // Handle both quantity and qty
+                  qty: v.quantity || v.qty,
                 })) || [],
               images: product.images || [],
             }}
