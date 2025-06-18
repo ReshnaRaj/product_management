@@ -1,6 +1,10 @@
 import { Heart } from "lucide-react";
 import StarRating from "./StarRating";
+import { useState } from "react";
+
 export default function ProductCard({ product, isWished, onToggle }) {
+  const [imageError, setImageError] = useState(false);
+
   return (
     <div className="relative border rounded-xl p-3 flex flex-col">
       {/* wishlist icon */}
@@ -27,6 +31,10 @@ export default function ProductCard({ product, isWished, onToggle }) {
         src={product.image}
         alt={product.title}
         className="w-full h-28 object-contain mb-2"
+        onError={(e) => {
+          setImageError(true);
+          e.target.src = "/placeholder-image.png"; // Add a placeholder image
+        }}
       />
 
       {/* details */}

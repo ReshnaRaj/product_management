@@ -49,13 +49,24 @@ export const addProduct = async (req, res) => {
     const newProduct = await Product.create({
       title: name.trim(),
       description: description.trim(),
-      variants: variantsParsed, // parse variants from string
-
+      variants: variantsParsed,
       subCategoryId,
-      images: imageUrls, // <-- store array in schema
+      images: imageUrls,
     });
 
-    res.status(201).json({ message: "Product created", product: newProduct });
+    // Format the response with full URLs
+    const host = `${req.protocol}://${req.get('host')}`;
+    const formattedProduct = {
+      ...newProduct.toObject(),
+      images: newProduct.images.map(img => 
+        img.startsWith('http') ? img : `${host}${img}`
+      )
+    };
+
+    res.status(201).json({ 
+      message: "Product created", 
+      product: formattedProduct 
+    });
   } catch (err) {
     console.error("Add Product error:", err);
     res.status(500).json({ message: "Server error" });
