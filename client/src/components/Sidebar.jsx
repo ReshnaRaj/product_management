@@ -1,7 +1,12 @@
+import { useMemo, useState } from "react";
 import { ChevronRight, ChevronDown } from "lucide-react";
-import { useState, useMemo } from "react";
 
-export default function Sidebar({ categories = [], subCategories = [] }) {
+export default function Sidebar({
+  categories = [],
+  subCategories = [],
+  activeSubCat = "",
+  setActiveSubCat = () => {},
+}) {
   const [open, setOpen] = useState({});
 
   const tree = useMemo(
@@ -12,11 +17,16 @@ export default function Sidebar({ categories = [], subCategories = [] }) {
           (sc) =>
             sc.category === cat._id ||
             sc.categoryId === cat._id ||
-            sc.category?._id === cat._id
+            sc.categoryId?._id === cat._id
         ),
       })),
     [categories, subCategories]
   );
+
+  const toggleSubCategory = (subId) => {
+    const isSelected = activeSubCat === subId;
+    setActiveSubCat(isSelected ? "" : subId);
+  };
 
   return (
     <aside className="w-56 border-r p-4 space-y-6">
@@ -46,13 +56,24 @@ export default function Sidebar({ categories = [], subCategories = [] }) {
               </button>
 
               {open[cat._id] && (
-                <ul className="pl-4 mt-1 space-y-1">
+                <ul className="pl-4 mt-1 space-y-2">
                   {cat.subs.map((s) => (
                     <li
                       key={s._id}
-                      className="text-[11px] cursor-pointer hover:text-primary"
+                      className="flex items-center gap-2 text-[12px]"
                     >
-                      {s.name}
+                      <input
+                        type="checkbox"
+                        checked={activeSubCat === s._id}
+                        onChange={() => toggleSubCategory(s._id)}
+                        className="w-4 h-4 accent-gray-600"
+                      />
+                      <label
+                        onClick={() => toggleSubCategory(s._id)}
+                        className="cursor-pointer"
+                      >
+                        {s.name}
+                      </label>
                     </li>
                   ))}
                 </ul>

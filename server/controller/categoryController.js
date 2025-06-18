@@ -5,7 +5,6 @@ import SubCategory from "../models/SubCategorySchema.js";
 export const addCategory = async (req, res) => {
   try {
     const { name } = req.body;
-    console.log(name,"names")
 
     if (!name?.trim()) {
       return res.status(400).json({ message: "Name is required" });
@@ -25,21 +24,20 @@ export const addCategory = async (req, res) => {
   }
 };
 
-export const getCategory=async(req,res)=>{
-    try {
-        const categories = await Category.find();
-        res.status(200).json(categories);
-    } catch (err) {
-        console.error("Get Category error:", err);
-        res.status(500).json({ message: "Server error" });
-    }
-}
+export const getCategory = async (req, res) => {
+  try {
+    const categories = await Category.find();
+    res.status(200).json(categories);
+  } catch (err) {
+    console.error("Get Category error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
 /* ----------  POST /api/sub-category  ---------- */
 export const addSubCategory = async (req, res) => {
   try {
     const { name, categoryId } = req.body;
-    console.log(name, categoryId, "name and categoryId in sub-category");
 
     if (!name?.trim() || !categoryId) {
       return res.status(400).json({ message: "Name and categoryId required" });
@@ -67,7 +65,9 @@ export const addSubCategory = async (req, res) => {
       categoryId: categoryId,
     });
 
-    res.status(201).json({ message: "Sub‑category created", subCategory: newSub });
+    res
+      .status(201)
+      .json({ message: "Sub‑category created", subCategory: newSub });
   } catch (err) {
     console.error("Add SubCategory error:", err);
     res.status(500).json({ message: "Server error" });
@@ -76,8 +76,8 @@ export const addSubCategory = async (req, res) => {
 
 export const getSubCategory = async (req, res) => {
   try {
-   const subCategories = await SubCategory.find().populate("categoryId");
-    
+    const subCategories = await SubCategory.find().populate("categoryId");
+
     res.status(200).json(subCategories);
   } catch (err) {
     console.error("Get SubCategory error:", err);

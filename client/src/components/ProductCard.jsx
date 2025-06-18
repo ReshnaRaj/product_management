@@ -29,7 +29,7 @@ export default function ProductCard({ product, isWished, onToggle }) {
       <h3 className="text-xs font-semibold mb-1 line-clamp-2">
         {product.title}
       </h3>
-      <p className="text-sm font-bold text-primary mb-1">${product.price}</p>
+      <p className="text-sm font-bold text-primary mb-1">₹{product.price}</p>
       <StarRating value={product.rating} />
     </div>
   );

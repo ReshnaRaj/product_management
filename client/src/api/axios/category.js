@@ -1,7 +1,6 @@
 import { privateAxios } from "./axiosInstance";
 export const addCategory = async (formData) => {
   try {
-    console.log("Form Data:", formData);  
     const res = await privateAxios.post("/category/add-category", formData);
     return res.data;
   } catch (error) {
@@ -10,7 +9,6 @@ export const addCategory = async (formData) => {
 };
 export const addSubCategory = async (formData) => {
   try {
-    console.log(formData,"formData in sub category api");
     const res = await privateAxios.post("/category/sub-category", formData);
     return res.data;
   } catch (error) {

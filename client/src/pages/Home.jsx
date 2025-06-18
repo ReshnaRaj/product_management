@@ -20,9 +20,13 @@ import {
   getWishlist,
   removeFromWishlist,
 } from "@/api/axios/product";
+import { Link } from "react-router-dom";
 
 export default function Home() {
   const [page, setPage] = useState(1);
+  const [editProduct, setEditProduct] = useState(null); // null means Add mode
+  const [search, setSearch] = useState("");
+  const [activeSubCat, setActiveSubCat] = useState("");
   const [showProduct, setShowProduct] = useState(false);
   const [showCat, setShowCat] = useState(false);
   const [showSubCat, setShowSubCat] = useState(false);
@@ -30,7 +34,8 @@ export default function Home() {
   const [wishlistIds, setWishlistIds] = useState([]);
   const [allSubCategories, setAllSubCategories] = useState([]); // for sub-categories
   const [products, setProducts] = useState([]); // for products
-  const API_BASE = import.meta.env.VITE_API_URL;
+  const [totalPages, setTotalPages] = useState(1);
+  const API_BASE = "http://localhost:5000";
   const handleAddCategory = async (name) => {
     try {
       const data = await addCategory({ name });
@@ -51,8 +56,6 @@ export default function Home() {
   };
   const handleAddProduct = async (product) => {
     try {
-      console.log("Adding product:", product);
-
       const formData = new FormData();
       formData.append("name", product.title);
 
@@ -62,11 +65,11 @@ export default function Home() {
       product.images.forEach((file) => formData.append("images", file));
 
       const res = await addProduct(formData);
-      console.log("Product added:", res);
+
       const patched = {
         ...res.product,
         images: res.product.images.map((img) =>
-          img.startsWith("http") ? img : `${API_BASE}${img}`
+          img.startsWith("http") ? img : `${API_BASE.replace(/\/$/, "")}${img}`
         ),
       };
 
@@ -95,33 +98,38 @@ export default function Home() {
       console.error("Failed to fetch sub-categories:", err);
     }
   };
-  const fetchProducts = async (pageNum = 1) => {
+  const fetchProducts = async (pageNum = 1, searchTerm = "", subCatId = "") => {
     try {
-      const response = await getProducts(pageNum);
-      console.log(response, "response");
-      const fetchedProducts = response.products;
+      const response = await getProducts({
+        page: pageNum,
+        search: searchTerm,
+        subCategoryId: subCatId,
+      });
 
-      const patchedProducts = fetchedProducts.map((p) => ({
+      const patchedProducts = response.products.map((p) => ({
         ...p,
         images: p.images.map((img) =>
           img.startsWith("http") ? img : `${API_BASE}${img}`
         ),
       }));
+
       const finalProducts = patchedProducts.map((p) => ({
         ...p,
         isWished: wishlistIds.includes(p._id),
       }));
 
       setProducts(finalProducts);
+      // setTotalPages(response.totalPages)
     } catch (err) {
       console.error("Failed to fetch products:", err);
     }
   };
+
   useEffect(() => {
     fetchCategories();
     fetchSubCategories();
-    fetchProducts(page);
-  }, [page]);
+    fetchProducts(page, search, activeSubCat);
+  }, [page, search, activeSubCat]);
   useEffect(() => {
     getWishlist().then((res) => {
       const ids = res.map((p) => p._id);
@@ -154,18 +162,31 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* navbar */}
-      <Navbar wishlistCount={wishlistIds.length} />
+      <Navbar
+        wishlistCount={wishlistIds.length}
+        search={search}
+        setSearch={setSearch}
+        setPage={setPage}
+      />
 
       {/* content */}
       <div className="flex flex-1">
         {/* sidebar */}
 
-        <Sidebar categories={categories} subCategories={allSubCategories} />
+        <Sidebar
+          categories={categories}
+          subCategories={allSubCategories}
+          activeSubCat={activeSubCat}
+          setActiveSubCat={(id) => {
+            setPage(1);
+            setActiveSubCat(id);
+          }}
+        />
 
         {/* main */}
         <main className="flex-1 p-6">
           {/* action buttons */}
-          <div className="flex gap-3 mb-5">
+          <div className="flex  justify-end gap-3 mb-5">
             <Button
               variant="outline"
               size="sm"
@@ -180,7 +201,13 @@ export default function Home() {
             >
               Add sub‑category
             </Button>
-            <Button size="sm" onClick={() => setShowProduct(true)}>
+            <Button
+              size="sm"
+              onClick={() => {
+                setEditProduct(null); // ensure it's add mode
+                setShowProduct(true);
+              }}
+            >
               Add product
             </Button>
           </div>
@@ -188,32 +215,24 @@ export default function Home() {
           {/* products grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
             {products.map((p) => (
-              <ProductCard
-                key={p._id}
-                product={{
-                  image: p.images[0],
-                  title: p.title,
-                  price: p.variants[0]?.price ?? 0,
-                }}
-                isWished={p.isWished}
-                onToggle={() => toggleWishlist(p._id)}
-              />
+              <Link to={`/product/${p._id}`} key={p._id}>
+                <ProductCard
+                  key={p._id}
+                  product={{
+                    image: p.images[0],
+                    title: p.title,
+                    price: p.variants[0]?.price ?? 0,
+                  }}
+                  isWished={p.isWished}
+                  onToggle={() => toggleWishlist(p._id)}
+                />
+              </Link>
             ))}
           </div>
 
           {/* bottom bar */}
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-500">12 total items</span>
-
+          <div className="flex items-center justify-center gap-4">
             <Pagination page={page} pages={6} setPage={setPage} />
-
-            <div className="text-xs">
-              Show&nbsp;
-              <select className="text-xs border rounded px-1 py-0.5">
-                <option>12</option>
-                <option>24</option>
-              </select>
-            </div>
           </div>
         </main>
       </div>

@@ -1,34 +1,32 @@
-import Product from '../models/ProductSchema.js';
-import Category from '../models/CategorySchema.js';
+import Product from "../models/ProductSchema.js";
+
 import Wishlist from "../models/WishlistSchema.js";
-import SubCategory from '../models/SubCategorySchema.js';
+import SubCategory from "../models/SubCategorySchema.js";
 /* ----------  POST /api/product  ---------- */
 export const addProduct = async (req, res) => {
   try {
-    const { name, description,variants,subCategoryId } = req.body;
-    console.log("Request Body:", req.body); // Debugging line to check request body
-    const images = req.files; 
-     console.log(images,"imagess")                       // <— multer array
+    const { name, description, variants, subCategoryId } = req.body;
+
+    const images = req.files;
 
     if (
       !name?.trim() ||
       !description?.trim() ||
-     
-      
       !subCategoryId ||
       images.length === 0
     ) {
-      return res.status(400).json({ message: "All fields and images are required" });
+      return res
+        .status(400)
+        .json({ message: "All fields and images are required" });
     }
 
- 
-
     const subCategory = await SubCategory.findById(subCategoryId);
-    if (!subCategory) return res.status(404).json({ message: "Sub‑category not found" });
+    if (!subCategory)
+      return res.status(404).json({ message: "Sub‑category not found" });
 
-     let variantsParsed = [];
+    let variantsParsed = [];
     try {
-      variantsParsed = JSON.parse(variants);   // [{ ram:"2", price:"444", qty:"5" }]
+      variantsParsed = JSON.parse(variants); // [{ ram:"2", price:"444", qty:"5" }]
     } catch (err) {
       return res.status(400).json({ message: "Invalid variants format" });
     }
@@ -51,10 +49,10 @@ export const addProduct = async (req, res) => {
     const newProduct = await Product.create({
       title: name.trim(),
       description: description.trim(),
-       variants: variantsParsed, // parse variants from string
-      
+      variants: variantsParsed, // parse variants from string
+
       subCategoryId,
-      images: imageUrls,          // <-- store array in schema
+      images: imageUrls, // <-- store array in schema
     });
 
     res.status(201).json({ message: "Product created", product: newProduct });
@@ -63,45 +61,45 @@ export const addProduct = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
- 
+
 export const getProducts = async (req, res) => {
   try {
-    /* ---------- 1. pagination ---------- */
-    const page  = Math.max(1, parseInt(req.query.page)  || 1);
+    const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.max(1, parseInt(req.query.limit) || 12);
-    const skip  = (page - 1) * limit;
+    const search = req.query.search?.trim();
+    const subCategory = req.query.subCategoryId;
 
-    /* ---------- 2. fetch + populate ---------- */
-    const products = await Product.find({})
-      .populate("subCategoryId", "name")   // remove if you don’t need the name
-      .sort({ createdAt: -1 })             // newest first
-      .skip(skip)
-      .limit(limit)
-      .lean();                             // plain JS objects
+    const filter = {};
+    if (search) {
+      // case‑insensitive partial match on 'title'
+      filter.title = { $regex: search, $options: "i" };
+    }
+    if (subCategory) {
+      filter.subCategoryId = subCategory;
+    }
 
-    const total = await Product.countDocuments({});
+    const skip = (page - 1) * limit;
 
-    /* ---------- 3. massage each product ---------- */
-    const urlPrefix = `${req.protocol}://${req.get("host")}`;
+    const [products, total] = await Promise.all([
+      Product.find(filter)
+        .populate("subCategoryId", "name")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Product.countDocuments(filter),
+    ]);
 
-    const formatted = products.map((p) => {
-      // absolute URLs for every image
-      const images = p.images.map((img) =>
-        img.startsWith("http") ? img : `${urlPrefix}${img}`
-      );
+    const host = `${req.protocol}://${req.get("host")}`;
+    const formatted = products.map((p) => ({
+      ...p,
+      images: p.images.map((img) =>
+        img.startsWith("http") ? img : `${host}${img}`
+      ),
+      cheapestPrice: Math.min(...p.variants.map((v) => v.price)),
+    }));
 
-      // cheapest variant price
-      const cheapest = Math.min(...p.variants.map((v) => v.price));
-
-      return {
-        ...p,
-        images,
-        cheapestPrice: cheapest,
-      };
-    });
-
-    /* ---------- 4. response ---------- */
-    res.status(200).json({
+    res.json({
       page,
       pages: Math.ceil(total / limit),
       total,
@@ -113,8 +111,108 @@ export const getProducts = async (req, res) => {
   }
 };
 
+export const getSingleProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
 
+    const product = await Product.findById(id)
+      .populate("subCategoryId", "name")
+      .lean();
 
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    const host = `${req.protocol}://${req.get("host")}`;
+
+    // Format image URLs
+    product.images = product.images.map((img) =>
+      img.startsWith("http") ? img : `${host}${img}`
+    );
+
+    res.json(product);
+  } catch (err) {
+    console.error("Get Single Product error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const updateProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description, variants, subCategoryId } = req.body;
+    const images = req.files;
+
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    // Validate required fields
+    // if (!name?.trim() || !description?.trim() || !subCategoryId) {
+    //   return res.status(400).json({ message: "All fields are required" });
+    // }
+
+    // Validate subcategory
+    const subCategory = await SubCategory.findById(subCategoryId);
+    if (!subCategory) {
+      return res.status(404).json({ message: "Sub-category not found" });
+    }
+
+    // Parse and validate variants
+    let variantsParsed;
+    try {
+      variantsParsed = JSON.parse(variants);
+      if (!Array.isArray(variantsParsed) || variantsParsed.length === 0) {
+        return res
+          .status(400)
+          .json({ message: "At least one variant required" });
+      }
+    } catch (err) {
+      return res.status(400).json({ message: "Invalid variants format" });
+    }
+
+    // Process variants
+    const processedVariants = variantsParsed.map((v) => ({
+      ram: v.ram,
+      price: Number(v.price),
+      quantity: Number(v.qty || v.quantity),
+    }));
+
+    // Handle images
+    let updatedImages = [...product.images];
+    if (images?.length > 0) {
+      const newImageUrls = images.map((f) => `/productimages/${f.filename}`);
+      updatedImages = [...updatedImages, ...newImageUrls];
+    }
+
+    // Update product
+    product.title = name.trim();
+    product.description = description.trim();
+    product.subCategoryId = subCategoryId;
+    product.variants = processedVariants;
+    product.images = updatedImages;
+
+    await product.save();
+
+    // Return updated product with full URLs
+    const host = `${req.protocol}://${req.get("host")}`;
+    const formattedProduct = {
+      ...product.toObject(),
+      images: product.images.map((img) =>
+        img.startsWith("http") ? img : `${host}${img}`
+      ),
+    };
+
+    res.json({
+      message: "Product updated successfully",
+      product: formattedProduct,
+    });
+  } catch (err) {
+    console.error("Update Product error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
 /* -------- GET /api/wishlist -------- */
 export const getWishlist = async (req, res) => {
@@ -133,7 +231,6 @@ export const getWishlist = async (req, res) => {
 
 /* -------- POST /api/wishlist/add -------- */
 export const addToWishlist = async (req, res) => {
-   
   const userId = req.user.id;
 
   const { productId } = req.body;
@@ -141,7 +238,7 @@ export const addToWishlist = async (req, res) => {
   try {
     const wl = await Wishlist.findOneAndUpdate(
       { user: userId },
-      { $addToSet: { products: productId } },  
+      { $addToSet: { products: productId } },
       { new: true, upsert: true }
     );
 
@@ -168,5 +265,3 @@ export const removeFromWishlist = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
-

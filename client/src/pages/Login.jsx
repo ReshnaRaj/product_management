@@ -22,7 +22,7 @@ export default function Login() {
     setError("");
     try {
       const response = await loginUser(formData);
-     
+
       const userData = {
         user: {
           id: response.user.id,
@@ -33,7 +33,6 @@ export default function Login() {
       };
       dispatch(setCredentials(userData));
       if (response.status === 200) {
-     
         navigate("/");
       }
     } catch (err) {

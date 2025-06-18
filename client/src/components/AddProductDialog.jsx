@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -24,6 +24,8 @@ export default function AddProductDialog({
   setOpen,
   onSave,
   subCategories = [],
+  initialData = null,
+  isEditMode = false,
 }) {
   const [error, setError] = useState("");
 
@@ -54,11 +56,7 @@ export default function AddProductDialog({
       variants: product.variants.filter((_, idx) => idx !== i),
     });
 
-  const handleImageChange = (e) =>
-    setProduct({ ...product, images: [...e.target.files] });
-
   const handleSubmit = async () => {
-    // Validate
     const invalidVariant = product.variants.some(
       (v) => !v.ram?.trim() || !v.price || !v.qty
     );
@@ -73,35 +71,56 @@ export default function AddProductDialog({
     setError("");
 
     try {
-      await onSave(product);
-
-      toast.success("Product added successfully!");
-      setProduct({
-        title: "",
-        description: "",
-        subCategory: "",
-        variants: [{ ram: "", price: "", qty: "" }],
-        images: [],
+      // Pass the entire product object to onSave
+      await onSave({
+        title: product.title,
+        description: product.description,
+        subCategory: product.subCategory,
+        variants: product.variants.map((v) => ({
+          ram: v.ram,
+          price: v.price,
+          qty: v.qty || v.quantity, // Handle both qty and quantity
+        })),
+        images: product.images,
       });
 
-      // Reset form
+      toast.success(isEditMode ? "Product updated" : "Product added");
 
-      setOpen(false); // Close modal
+      // Only reset if not in edit mode
+      if (!isEditMode) {
+        setProduct({
+          title: "",
+          description: "",
+          subCategory: "",
+          variants: [{ ram: "", price: "", qty: "" }],
+          images: [],
+        });
+      }
+
+      setOpen(false);
     } catch (err) {
-      toast({
-        title: "Error",
-        description: err.message || "Failed to add product",
-        variant: "destructive",
-      });
+      toast.error(err.message || "Failed to save product");
     }
   };
+
+  useEffect(() => {
+    if (open && isEditMode && initialData) {
+      setProduct({
+        title: initialData.title || "",
+        description: initialData.description || "",
+        subCategory: initialData.subCategory || "",
+        variants: initialData.variants || [{ ram: "", price: "", qty: "" }],
+        images: initialData.images || [],
+      });
+    }
+  }, [open, isEditMode, initialData]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="max-w-2xl rounded-xl p-6">
         <DialogHeader className="mb-4">
           <DialogTitle className="text-center text-lg font-semibold">
-            Add Product
+            {isEditMode ? "Edit Product" : "Add Product"}
           </DialogTitle>
         </DialogHeader>
 
@@ -176,7 +195,7 @@ export default function AddProductDialog({
 
             <div className="col-span-3 space-y-2">
               <div className="flex gap-2 flex-wrap items-center">
-                {product.images?.map((file, index) => (
+                {/* {product.images?.map((file, index) => (
                   <img
                     key={index}
                     src={URL.createObjectURL(file)}
@@ -193,9 +212,33 @@ export default function AddProductDialog({
                         : "border-gray-300"
                     }`}
                   />
-                ))}
+                ))} */}
+                {product.images?.map((img, index) => {
+                  const src =
+                    typeof img === "string" ? img : URL.createObjectURL(img);
 
-              
+                  return (
+                    <img
+                      key={index}
+                      src={src}
+                      alt={`preview-${index}`}
+                      onClick={() =>
+                        setProduct((prev) => ({
+                          ...prev,
+                          selectedImageIndex: index,
+                        }))
+                      }
+                      className={`w-16 h-16 object-cover rounded border cursor-pointer
+        ${
+          product.selectedImageIndex === index
+            ? "ring-2 ring-[#1e80ff]"
+            : "border-gray-300"
+        }
+      `}
+                    />
+                  );
+                })}
+
                 <label
                   htmlFor="image-upload"
                   className="w-16 h-16 border border-dashed rounded flex items-center justify-center text-gray-400 cursor-pointer hover:bg-gray-100"
@@ -228,7 +271,7 @@ export default function AddProductDialog({
             className="bg-[#d89e00] hover:bg-[#b88400] text-white px-6"
             onClick={handleSubmit}
           >
-            ADD
+            {isEditMode ? "UPDATE" : "ADD"}
           </Button>
           <Button
             variant="outline"

@@ -1,4 +1,3 @@
- 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -25,7 +24,11 @@ export default function ProductDetails() {
       <div className="flex gap-6">
         {/* Left - Images */}
         <div className="flex-1">
-          <img src={selectedImg} alt="Product" className="w-full rounded border" />
+          <img
+            src={selectedImg}
+            alt="Product"
+            className="w-full rounded border"
+          />
           <div className="flex gap-2 mt-4">
             {product.images.map((img, idx) => (
               <img
@@ -33,7 +36,9 @@ export default function ProductDetails() {
                 src={img}
                 alt="Thumb"
                 onClick={() => setSelectedImg(img)}
-                className={`w-16 h-16 rounded border cursor-pointer ${selectedImg === img ? "ring-2 ring-blue-500" : ""}`}
+                className={`w-16 h-16 rounded border cursor-pointer ${
+                  selectedImg === img ? "ring-2 ring-blue-500" : ""
+                }`}
               />
             ))}
           </div>
@@ -43,7 +48,9 @@ export default function ProductDetails() {
         <div className="flex-1 space-y-4">
           <h2 className="text-xl font-semibold">{product.name}</h2>
           <p className="text-lg font-bold text-green-600">${product.price}</p>
-          <p className="text-sm text-gray-500">Availability: {product.status}</p>
+          <p className="text-sm text-gray-500">
+            Availability: {product.status}
+          </p>
           <div className="text-sm">Variants:</div>
           <div className="flex gap-3">
             {product.variants.map((v, i) => (

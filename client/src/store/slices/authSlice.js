@@ -17,14 +17,17 @@ const authSlice = createSlice({
       state.user = {
         id: user.id,
         name: user.name,
-        email: user.email
+        email: user.email,
       };
-       state.token = token;
+      state.token = token;
       // persist to localStorage
-       localStorage.setItem("authState", JSON.stringify({
-        user: state.user,
-        token: state.token
-      }));
+      localStorage.setItem(
+        "authState",
+        JSON.stringify({
+          user: state.user,
+          token: state.token,
+        })
+      );
     },
     logout: (state) => {
       state.user = null;

@@ -3,7 +3,6 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 
-// Recreate __dirname in ES Module
 const __filename = fileURLToPath(import.meta.url);
 console.log("__filename:", __filename);
 const __dirname = dirname(__filename);
@@ -19,6 +18,6 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
-export const uploadProductImages = upload.array("images", 6); 
+export const uploadProductImages = upload.array("images", 6);
 
 export default upload;

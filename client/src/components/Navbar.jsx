@@ -1,10 +1,35 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Heart } from "lucide-react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { logout } from "@/store/slices/authSlice";
+import WishlistDrawer from "./WishListDrawer";
+import { useState } from "react";
 
-export default function Navbar({ wishlistCount = 0 }) {
+export default function Navbar({
+  wishlistCount = 0,
+  search,
+  setSearch,
+  setPage,
+}) {
   const { user } = useSelector((s) => s.auth);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const [wishlistOpen, setWishlistOpen] = useState(false);
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/login");
+  };
+
+  const handleAuth = () => {
+    if (user) {
+      handleLogout();
+    } else {
+      navigate("/login");
+    }
+  };
 
   return (
     <header className="h-14 w-full bg-primary-foreground shadow flex items-center justify-between px-6">
@@ -12,6 +37,12 @@ export default function Navbar({ wishlistCount = 0 }) {
       <form className="mx-auto w-full max-w-lg flex">
         <Input
           placeholder="Search any laptop"
+          type="text"
+          value={search}
+          onChange={(e) => {
+            setPage(1);
+            setSearch(e.target.value);
+          }}
           className="rounded-r-none focus-visible:ring-0 focus-visible:ring-offset-0"
         />
         <Button
@@ -25,15 +56,13 @@ export default function Navbar({ wishlistCount = 0 }) {
       {/* right side */}
       <div className="flex items-center gap-5">
         {user ? <span className="text-sm">Hi, {user.name}</span> : null}
-        <Button variant="ghost" size="sm" onClick={() => {}}>
+        <Button variant="ghost" size="sm" onClick={handleAuth}>
           {user ? "Log out" : "Sign in"}
         </Button>
         {/* wishlist icon */}
         <div
           className="relative cursor-pointer"
-          onClick={() => {
-            /* go to wishlist */
-          }}
+          //  onClick={() => setWishlistOpen(true)}
         >
           <Heart className="h-5 w-5" />
           {wishlistCount > 0 && (
@@ -44,6 +73,12 @@ export default function Navbar({ wishlistCount = 0 }) {
         </div>
         <ShoppingCart className="h-5 w-5 cursor-pointer" />
       </div>
+      <WishlistDrawer
+        open={wishlistOpen}
+        // onOpenChange={setWishlistOpen}
+        // items={wishlistItems}
+        // onRemove={handleRemove}
+      />
     </header>
   );
 }

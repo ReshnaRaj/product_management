@@ -16,7 +16,9 @@ export default function AddCategoryDialog({ open, setOpen, onSave }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="max-w-sm rounded-xl p-6 text-center">
         <DialogHeader>
-          <DialogTitle className="text-lg font-semibold">Add Category</DialogTitle>
+          <DialogTitle className="text-lg font-semibold">
+            Add Category
+          </DialogTitle>
         </DialogHeader>
 
         <Input
@@ -28,11 +30,11 @@ export default function AddCategoryDialog({ open, setOpen, onSave }) {
 
         <DialogFooter className="flex justify-center gap-3">
           <Button
-           disabled={!name.trim()}
+            disabled={!name.trim()}
             className="bg-[#d89e00] hover:bg-[#b88400] text-white px-6"
             onClick={() => {
-               onSave(name.trim());
-               setName("");   
+              onSave(name.trim());
+              setName("");
               setOpen(false);
             }}
           >
