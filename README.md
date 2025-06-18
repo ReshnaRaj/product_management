@@ -1,5 +1,6 @@
 MERN STACK PRODUCT MANAGEMENT APPLICATION
-**Frontend:**
+
+ **Frontend:**
 - React.js
 - Redux Toolkit
 - ShadCN/UI + Tailwind CSS
