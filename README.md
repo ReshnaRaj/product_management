@@ -6,7 +6,7 @@ MERN STACK PRODUCT MANAGEMENT APPLICATION
 - ShadCN/UI + Tailwind CSS
 - React Router DOM
 - Toastify for notifications
-- **Backend:**
+ **Backend:**
 - Node.js
 - Express.js
 - MongoDB (Mongoose)
