@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import Signup from "./pages/Signup";
 import ProtectedRoute from "./Route/ProtectedRoute.jsx";
 import ProductDetails from "./components/ProductDetails";
+import Loader from "./components/Loader";
 
 function App() {
   return (
