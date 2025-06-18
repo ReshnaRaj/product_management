@@ -4,7 +4,7 @@ import { ShoppingCart, Heart } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { logout } from "@/store/slices/authSlice";
-import WishlistDrawer from "./WishListDrawer";
+import WishlistDrawer from "@/components/WishlistDrawer";
 import { useState } from "react";
 
 export default function Navbar({
