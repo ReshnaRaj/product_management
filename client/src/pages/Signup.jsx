@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Mail, Lock, User } from "lucide-react";
 import { toast } from "sonner";
+import { signupUser } from "@/api/axios/auth";
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -32,10 +33,7 @@ export default function Signup() {
     e.preventDefault();
     setError("");
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/signup",
-        formData
-      );
+      const res=await signupUser(formData);
 toast.success("Signup successful");
       if (res.status === 201) navigate("/login");
     } catch (err) {
