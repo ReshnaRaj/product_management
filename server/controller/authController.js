@@ -25,12 +25,7 @@ export const signup = async (req, res) => {
 
     await newUser.save();
 
-    // Create token
-
-    //     const token = generateToken({
-    //   userId: newUser._id,
-    //   email: newUser.email,
-    // })
+    
 
     res.status(201).json({
       message: "User created successfully",
@@ -39,7 +34,7 @@ export const signup = async (req, res) => {
         name: newUser.name,
         email: newUser.email,
       },
-      // token,
+      
     });
   } catch (err) {
     console.error("Signup Error:", err.message);

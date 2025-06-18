@@ -37,7 +37,8 @@ export default function Signup() {
 toast.success("Signup successful");
       if (res.status === 201) navigate("/login");
     } catch (err) {
-      setError(err.response?.data?.message || "Signup failed");
+      
+      setError(err.message || "Signup failed");
     }
   };
 

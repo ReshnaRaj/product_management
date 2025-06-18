@@ -21,9 +21,10 @@ export const loginUser = async (formData) => {
 export const signupUser = async (formData) => {
   try {
     const res = await publicAxios.post("/auth/signup", formData);
-    return res.data;
+    
+    return res;
   } catch (error) {
-    throw error.response?.data || { message: "Signup failed" };
+    throw error|| { message: "Signup failed" };
   }
 };
 
