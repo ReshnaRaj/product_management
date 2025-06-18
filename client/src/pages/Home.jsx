@@ -57,32 +57,59 @@ export default function Home() {
       alert(err.message || "Failed to add sub-category");
     }
   };
-  const handleAddProduct = async (product) => {
-    try {
-      const formData = new FormData();
-      formData.append("name", product.title);
+  // const handleAddProduct = async (product) => {
+  //   try {
+  //     const formData = new FormData();
+  //     formData.append("name", product.title);
 
-      formData.append("description", product.description);
-      formData.append("subCategoryId", product.subCategory);
-      formData.append("variants", JSON.stringify(product.variants));
-      product.images.forEach((file) => formData.append("images", file));
+  //     formData.append("description", product.description);
+  //     formData.append("subCategoryId", product.subCategory);
+  //     formData.append("variants", JSON.stringify(product.variants));
+  //     product.images.forEach((file) => formData.append("images", file));
 
-      const res = await addProduct(formData);
+  //     const res = await addProduct(formData);
 
-      const patched = {
-        ...res.product,
-        images: res.product.images.map((img) =>
-          img.startsWith("http") ? img : `${API_BASE.replace(/\/$/, "")}${img}`
-        ),
-      };
+  //     const patched = {
+  //       ...res.product,
+  //       images: res.product.images.map((img) =>
+  //         img.startsWith("http") ? img : `${API_BASE.replace(/\/$/, "")}${img}`
+  //       ),
+  //     };
 
-      setProducts((prev) => [...prev, patched]);
-      setShowProduct(false); // close modal
-    } catch (err) {
-      alert(err.message || "Failed to add product");
-    }
-  };
+  //     setProducts((prev) => [...prev, patched]);
+  //     setShowProduct(false); // close modal
+  //   } catch (err) {
+  //     alert(err.message || "Failed to add product");
+  //   }
+  // };
 
+      const handleAddProduct = async (product) => {
+        try {
+            const formData = new FormData();
+            formData.append("name", product.title);
+            formData.append("description", product.description);
+            formData.append("subCategoryId", product.subCategory);
+            formData.append("variants", JSON.stringify(product.variants));
+            product.images.forEach((file) => formData.append("images", file));
+
+            const res = await addProduct(formData);
+
+            // Format the new product's image URLs
+            const newProduct = {
+                ...res.product,
+                images: res.product.images.map((img) =>
+                    img.startsWith("http") ? img : `${API_BASE}${img}`
+                ),
+                isWished: false
+            };
+
+            // Add new product to the beginning of the list
+            setProducts(prevProducts => [newProduct, ...prevProducts]);
+            setShowProduct(false);
+        } catch (err) {
+            alert(err.message || "Failed to add product");
+        }
+    };
   const fetchCategories = async () => {
     try {
       const response = await getCategory();
