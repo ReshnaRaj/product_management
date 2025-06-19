@@ -18,7 +18,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import VariantRow from "./VariantRow";
-import { Ellipsis } from "lucide-react"; // 1. Import Ellipsis
+import { Ellipsis, X } from "lucide-react"; // Import X for the cross icon
 
 export default function AddProductDialog({
   open,
@@ -138,6 +138,20 @@ export default function AddProductDialog({
     }
   }, [open, isEditMode, initialData]);
 
+  // Remove image handler
+  const handleRemoveImage = (index) => {
+    setProduct((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
+      selectedImageIndex:
+        prev.selectedImageIndex === index
+          ? 0
+          : prev.selectedImageIndex > index
+          ? prev.selectedImageIndex - 1
+          : prev.selectedImageIndex,
+    }));
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="max-w-2xl rounded-xl p-6">
@@ -215,27 +229,8 @@ export default function AddProductDialog({
           {/* Upload Image */}
           <div className="grid grid-cols-4 items-start gap-2">
             <label className="text-right pt-2 col-span-1">Upload image :</label>
-
             <div className="col-span-3 space-y-2">
               <div className="flex gap-2 flex-wrap items-center">
-                {/* {product.images?.map((file, index) => (
-                  <img
-                    key={index}
-                    src={URL.createObjectURL(file)}
-                    alt={`preview-${index}`}
-                    onClick={() =>
-                      setProduct((prev) => ({
-                        ...prev,
-                        selectedImageIndex: index,
-                      }))
-                    }
-                    className={`w-16 h-16 object-cover rounded border cursor-pointer transition duration-200 ${
-                      product.selectedImageIndex === index
-                        ? "ring-2 ring-[#1e80ff]"
-                        : "border-gray-300"
-                    }`}
-                  />
-                ))} */}
                 {product.images?.map((img, index) => {
                   const src =
                     typeof img === "string"
@@ -243,17 +238,30 @@ export default function AddProductDialog({
                       : URL.createObjectURL(img);
 
                   return (
-                    <img
-                      key={index}
-                      src={src}
-                      alt={`preview-${index}`}
-                      onClick={() =>
-                        setProduct((prev) => ({ ...prev, selectedImageIndex: index }))
-                      }
-                      className={`w-16 h-16 object-cover rounded border cursor-pointer
-        ${product.selectedImageIndex === index ? "ring-2 ring-[#1e80ff]" : "border-gray-300"}
-      `}
-                    />
+                    <div key={index} className="relative group">
+                      <img
+                        src={src}
+                        alt={`preview-${index}`}
+                        onClick={() =>
+                          setProduct((prev) => ({
+                            ...prev,
+                            selectedImageIndex: index,
+                          }))
+                        }
+                        className={`w-16 h-16 object-cover rounded border cursor-pointer
+                        ${product.selectedImageIndex === index ? "ring-2 ring-[#1e80ff]" : "border-gray-300"}
+                      `}
+                      />
+                      {/* Cross icon for removing image */}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImage(index)}
+                        className="absolute -top-2 -right-2 bg-white rounded-full p-1 shadow hover:bg-red-100 group-hover:opacity-100 opacity-80 transition"
+                        title="Remove image"
+                      >
+                        <X className="w-4 h-4 text-red-500" />
+                      </button>
+                    </div>
                   );
                 })}
 
