@@ -8,12 +8,15 @@ import { useDispatch } from "react-redux";
 import { setCredentials } from "@/store/slices/authSlice";
 import { loginUser } from "@/api/axios/auth";
 import { toast } from "sonner";
+import Loader2 from "@/components/Loader";  
+import { Ellipsis } from 'lucide-react';
 
 export default function Login() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) =>{
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -23,6 +26,7 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
     try {
       const response = await loginUser(formData);
       
@@ -43,6 +47,8 @@ export default function Login() {
     } catch (err) {
     console.log(err,"err")
       setError(err.message || "Login failed");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -97,8 +103,17 @@ export default function Login() {
             <Button
               className="w-full bg-[#d89e00] hover:bg-[#c58900]"
               type="submit"
+              disabled={loading}
             >
-              SIGN IN
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                   Signing In
+                   <Ellipsis className="w-4 h-4" />
+                 
+                </span>
+              ) : (
+                "SIGN IN"
+              )}
             </Button>
           </form>
         </div>
