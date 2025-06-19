@@ -1,4 +1,4 @@
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -18,16 +18,18 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import VariantRow from "./VariantRow";
+import { Ellipsis } from "lucide-react"; // 1. Import Ellipsis
 
 export default function AddProductDialog({
   open,
   setOpen,
   onSave,
   subCategories = [],
-   initialData = null,
+  initialData = null,
   isEditMode = false,
 }) {
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false); // 2. Add loading state
 
   const [product, setProduct] = useState({
     title: "",
@@ -57,88 +59,85 @@ export default function AddProductDialog({
     });
 
   const handleSubmit = async () => {
-  // Validate description
-  if (!product.description.trim()) {
-    setError("Description is required.");
-    return;
-  }
-  
-
-  // Validate images
-  if (!product.images || product.images.length === 0) {
-    setError("Please upload at least one image.");
-    return;
-  }
-
-  // Validate variants
-  if (!product.variants.length) {
-    setError("At least one variant is required.");
-    return;
-  }
-  for (let v of product.variants) {
-    if (
-      !v.ram?.toString().trim() ||
-      !v.price?.toString().trim() ||
-      !v.qty?.toString().trim()
-    ) {
-      setError("All variant fields are required.");
+    // Validate description
+    if (!product.description.trim()) {
+      setError("Description is required.");
       return;
     }
-    if (
-      isNaN(Number(v.ram)) ||
-      isNaN(Number(v.price)) ||
-      isNaN(Number(v.qty))
-    ) {
-      setError("RAM, Price, and Quantity must be numbers.");
+
+    // Validate images
+    if (!product.images || product.images.length === 0) {
+      setError("Please upload at least one image.");
       return;
     }
-  }
 
-  setError("");
+    // Validate variants
+    if (!product.variants.length) {
+      setError("At least one variant is required.");
+      return;
+    }
+    for (let v of product.variants) {
+      if (
+        !v.ram?.toString().trim() ||
+        !v.price?.toString().trim() ||
+        !v.qty?.toString().trim()
+      ) {
+        setError("All variant fields are required.");
+        return;
+      }
+      if (isNaN(Number(v.ram)) || isNaN(Number(v.price)) || isNaN(Number(v.qty))) {
+        setError("RAM, Price, and Quantity must be numbers.");
+        return;
+      }
+    }
 
-  try {
-    await onSave({
-      title: product.title,
-      description: product.description,
-      subCategory: product.subCategory,
-      variants: product.variants.map((v) => ({
-        ram: v.ram,
-        price: v.price,
-        qty: v.qty || v.quantity,
-      })),
-      images: product.images,
-    });
+    setError("");
+    setLoading(true); // Start loading
+    try {
+      await onSave({
+        title: product.title,
+        description: product.description,
+        subCategory: product.subCategory,
+        variants: product.variants.map((v) => ({
+          ram: v.ram,
+          price: v.price,
+          qty: v.qty || v.quantity,
+        })),
+        images: product.images,
+      });
 
-    toast.success(isEditMode ? "Product updated" : "Product added");
+      toast.success(isEditMode ? "Product updated" : "Product added");
 
-    if (!isEditMode) {
+      if (!isEditMode) {
+        setProduct({
+          title: "",
+          description: "",
+          subCategory: "",
+          variants: [{ ram: "", price: "", qty: "" }],
+          images: [],
+        });
+      }
+
+      setOpen(false);
+    } catch (err) {
+      toast.error(err.message || "Failed to save product");
+    } finally {
+      setLoading(false); // Stop loading
+    }
+  };
+
+  useEffect(() => {
+    if (open && isEditMode && initialData) {
       setProduct({
-        title: "",
-        description: "",
-        subCategory: "",
-        variants: [{ ram: "", price: "", qty: "" }],
-        images: [],
+        title: initialData.title || "",
+        description: initialData.description || "",
+        subCategory: initialData.subCategory || "",
+        variants: initialData.variants || [{ ram: "", price: "", qty: "" }],
+        images: initialData.images || [],
       });
     }
+  }, [open, isEditMode, initialData]);
 
-    setOpen(false);
-  } catch (err) {
-    toast.error(err.message || "Failed to save product");
-  }
-};
-  
-useEffect(() => {
-  if (open && isEditMode && initialData) {
-    setProduct({
-      title: initialData.title || "",
-      description: initialData.description || "",
-      subCategory: initialData.subCategory || "",
-      variants: initialData.variants || [{ ram: "", price: "", qty: "" }],
-       images:initialData.images || [],
-    });
-  }
-}, [open, isEditMode, initialData]);
- 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="max-w-2xl rounded-xl p-6">
@@ -238,26 +237,25 @@ useEffect(() => {
                   />
                 ))} */}
                 {product.images?.map((img, index) => {
-  const src =
-    typeof img === "string"                
-      ? img
-      : URL.createObjectURL(img);         
+                  const src =
+                    typeof img === "string"
+                      ? img
+                      : URL.createObjectURL(img);
 
-  return (
-    <img
-      key={index}
-      src={src}
-      alt={`preview-${index}`}
-      onClick={() =>
-        setProduct((prev) => ({ ...prev, selectedImageIndex: index }))
-      }
-      className={`w-16 h-16 object-cover rounded border cursor-pointer
+                  return (
+                    <img
+                      key={index}
+                      src={src}
+                      alt={`preview-${index}`}
+                      onClick={() =>
+                        setProduct((prev) => ({ ...prev, selectedImageIndex: index }))
+                      }
+                      className={`w-16 h-16 object-cover rounded border cursor-pointer
         ${product.selectedImageIndex === index ? "ring-2 ring-[#1e80ff]" : "border-gray-300"}
       `}
-    />
-  );
-})}
-
+                    />
+                  );
+                })}
 
                 <label
                   htmlFor="image-upload"
@@ -290,26 +288,33 @@ useEffect(() => {
           <Button
             className="bg-[#d89e00] hover:bg-[#b88400] text-white px-6"
             onClick={handleSubmit}
+            disabled={loading}
           >
-            {isEditMode ? "UPDATE" : "ADD"}
+            {loading ? (
+              <span className="flex items-center gap-2">
+                {isEditMode ? "Updating" : "Adding"}
+                <Ellipsis className="w-4 h-4" />
+              </span>
+            ) : isEditMode ? "UPDATE" : "ADD"}
           </Button>
           <button
-  type="button"
-  onClick={() => {
-    setProduct({
-      title: "",
-      description: "",
-      subCategory: "",
-      variants: [{ ram: "", price: "", qty: "" }],
-      images: [],
-    });
-    setError("");
-    setOpen(false);
-  }}
-  className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
->
-  Discard
-</button>
+            type="button"
+            onClick={() => {
+              setProduct({
+                title: "",
+                description: "",
+                subCategory: "",
+                variants: [{ ram: "", price: "", qty: "" }],
+                images: [],
+              });
+              setError("");
+              setOpen(false);
+            }}
+            className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
+            disabled={loading}
+          >
+            Discard
+          </button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

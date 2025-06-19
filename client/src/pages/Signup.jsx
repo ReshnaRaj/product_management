@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Mail, Lock, User } from "lucide-react";
+import { Mail, Lock, User, Ellipsis } from "lucide-react";
 import { toast } from "sonner";
 import { signupUser } from "@/api/axios/auth";
 
@@ -16,6 +15,7 @@ export default function Signup() {
     password: "",
   });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) =>{
      const { name, value } = e.target;
@@ -32,13 +32,15 @@ export default function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
     try {
       const res=await signupUser(formData);
-toast.success("Signup successful");
+      toast.success("Signup successful");
       if (res.status === 201) navigate("/login");
     } catch (err) {
-      
       setError(err.message || "Signup failed");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -57,8 +59,6 @@ toast.success("Signup successful");
             To keep connected with us please login with your personal info
           </p>
           <Button
-            // variant="outline"
-            // className="border-white text-white hover:bg-white/10"
             onClick={() => navigate("/login")}
           >
             SIGN IN
@@ -116,8 +116,16 @@ toast.success("Signup successful");
             <Button
               className="w-full bg-[#d89e00] hover:bg-[#c58900]"
               type="submit"
+              disabled={loading}
             >
-              SIGN UP
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  Signing Up
+                  <Ellipsis className="w-4 h-4" />
+                </span>
+              ) : (
+                "SIGN UP"
+              )}
             </Button>
           </form>
 

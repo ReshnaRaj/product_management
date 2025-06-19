@@ -15,7 +15,7 @@ export default function WishlistDrawer({
   items = [],
   onRemove,
 }) {
-  console.log(items,"items on the wishlist")
+  
 
   return (
     <div
