@@ -13,6 +13,8 @@ export default function Navbar({
   search,
   setSearch,
   setPage,
+  wishlistItems = [],
+  onRemoveWishlistItem,
 }) {
   const { user } = useSelector((s) => s.auth);
   const dispatch = useDispatch();
@@ -64,7 +66,7 @@ export default function Navbar({
         {/* wishlist icon */}
         <div
           className="relative cursor-pointer"
-          //  onClick={() => setWishlistOpen(true)}
+           onClick={() => setWishlistOpen(true)}
         >
           <Heart className="h-5 w-5" />
           {wishlistCount > 0 && (
@@ -77,8 +79,9 @@ export default function Navbar({
       </div>
       <WishlistDrawer
         open={wishlistOpen}
-        // onOpenChange={setWishlistOpen}
-        // items={wishlistItems}
+        onOpenChange={setWishlistOpen}
+        items={wishlistItems}
+        onRemove={onRemoveWishlistItem}
         // onRemove={handleRemove}
       />
     </header>

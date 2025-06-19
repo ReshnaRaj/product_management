@@ -30,6 +30,7 @@ export default function Home() {
   const [search, setSearch] = useState("");
   const [activeSubCat, setActiveSubCat] = useState("");
   const [showProduct, setShowProduct] = useState(false);
+  const [wishlistItems, setWishlistItems] = useState([]);
   const [showCat, setShowCat] = useState(false);
   const [showSubCat, setShowSubCat] = useState(false);
   const [categories, setCategories] = useState([]);
@@ -141,8 +142,8 @@ export default function Home() {
   }, [page, search, activeSubCat]);
   useEffect(() => {
     getWishlist().then((res) => {
-      const ids = res.map((p) => p._id);
-      setWishlistIds(ids);
+      setWishlistItems(res);
+      setWishlistIds(res.map((p) => p._id));
     });
   }, []);
   useEffect(() => {
@@ -159,7 +160,7 @@ export default function Home() {
       if (wishlistIds.includes(productId)) {
         await removeFromWishlist(productId);
         setWishlistIds((prev) => prev.filter((id) => id !== productId));
-        // Immediately update the product's isWished property
+        setWishlistItems((prev) => prev.filter((item) => item._id !== productId));
         setProducts((prevProducts) =>
           prevProducts.map((p) =>
             p._id === productId ? { ...p, isWished: false } : p
@@ -169,7 +170,14 @@ export default function Home() {
       } else {
         await addToWishlist(productId);
         setWishlistIds((prev) => [...prev, productId]);
-        // Immediately update the product's isWished property
+        // Optionally fetch the new wishlist item from API, or construct it from products
+        const addedProduct = products.find((p) => p._id === productId);
+        if (addedProduct) {
+          setWishlistItems((prev) => [...prev, { ...addedProduct, _id: productId }]);
+        } else {
+          // fallback: refetch wishlist
+          getWishlist().then((res) => setWishlistItems(res));
+        }
         setProducts((prevProducts) =>
           prevProducts.map((p) =>
             p._id === productId ? { ...p, isWished: true } : p
@@ -181,6 +189,21 @@ export default function Home() {
       console.error("Wishlist error:", err);
     }
   };
+  const handleRemoveWishlistItem = async (id) => {
+  try {
+    await removeFromWishlist(id);
+    setWishlistItems((items) => items.filter((item) => item._id !== id));
+    setWishlistIds((ids) => ids.filter((wid) => wid !== id));
+    setProducts((prevProducts) =>
+      prevProducts.map((p) =>
+        p._id === id ? { ...p, isWished: false } : p
+      )
+    );
+    toast.success("Removed from wishlist");
+  } catch (err) {
+    toast.error("Failed to remove from wishlist");
+  }
+};
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -190,6 +213,8 @@ export default function Home() {
         search={search}
         setSearch={setSearch}
         setPage={setPage}
+        wishlistItems={wishlistItems}
+  onRemoveWishlistItem={handleRemoveWishlistItem}
       />
 
       {/* content */}
