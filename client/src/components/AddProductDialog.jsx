@@ -62,6 +62,7 @@ export default function AddProductDialog({
 
   const handleSubmit = async () => {
     // Validate description
+    console.log(product,"productsss")
     if (!product.description.trim()) {
       setError("Description is required.");
       return;
@@ -123,6 +124,7 @@ export default function AddProductDialog({
 
       setOpen(false);
     } catch (err) {
+      console.log(err,"while adding new products")
       toast.error(err.message || "Failed to save product");
     } finally {
       setLoading(false); // Stop loading

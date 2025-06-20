@@ -6,6 +6,7 @@ import SubCategory from "../models/SubCategorySchema.js";
 export const addProduct = async (req, res) => {
   try {
     const { name, description, variants, subCategoryId } = req.body;
+    console.log(req.body,"request")
 
     const images = req.files;
 
