@@ -151,7 +151,7 @@ export const getSingleProduct = async (req, res) => {
 export const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description, variants, subCategoryId } = req.body;
+    const { name, description, variants, subCategoryId, removedImages } = req.body;
     const images = req.files;
 
     const product = await Product.findById(id);
@@ -195,6 +195,21 @@ export const updateProduct = async (req, res) => {
     if (images?.length > 0) {
       const newImageUrls = images.map((f) => `/productimages/${f.filename}`);
       updatedImages = [...updatedImages, ...newImageUrls];
+    }
+
+    // Remove images if requested
+    let toRemove = [];
+    if (removedImages) {
+      try {
+        toRemove = Array.isArray(removedImages)
+          ? removedImages
+          : JSON.parse(removedImages);
+      } catch {
+        toRemove = [];
+      }
+      updatedImages = updatedImages.filter(
+        (img) => !toRemove.includes(img)
+      );
     }
 
     // Update product

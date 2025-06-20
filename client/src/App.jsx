@@ -5,15 +5,13 @@ import { Toaster } from "@/components/ui/sonner";
 import Signup from "./pages/Signup";
 import ProtectedRoute from "./Route/ProtectedRoute.jsx";
 import ProductDetails from "./components/ProductDetails";
-import Loader from "./components/Loader";
+ 
 
 function App() {
   return (
     <>
       <Toaster
-        toastOptions={{
-          className: "bg-green-100 text-green-700 border border-green-300",
-        }}
+         
         position="top-center"
       />
       <Router>

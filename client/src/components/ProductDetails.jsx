@@ -78,35 +78,30 @@ export default function ProductDetails() {
   const handleEditProduct = async (updatedProductData) => {
     try {
       const formData = new FormData();
-
-      // Append basic product info
       formData.append("name", updatedProductData.title);
       formData.append("description", updatedProductData.description);
       formData.append("subCategoryId", updatedProductData.subCategory);
 
-      // Handle existing and new images
       updatedProductData.images.forEach((img) => {
         if (img instanceof File) {
           formData.append("images", img);
         }
       });
 
-      // Convert variants to the expected format
       const variantsData = updatedProductData.variants.map((v) => ({
         ram: v.ram,
         price: Number(v.price),
         qty: Number(v.qty),
       }));
-
       formData.append("variants", JSON.stringify(variantsData));
 
-      const response = await updateProduct(id, formData);
-      console.log("Update response:", response);
+      // Always send removedImages as a JSON string
+      formData.append("removedImages", JSON.stringify(updatedProductData.removedImages || []));
 
+      const response = await updateProduct(id, formData);
       await fetchProduct();
       setEditOpen(false);
     } catch (error) {
-      console.error("Error updating product:", error);
       toast.error(error.message || "Failed to update product");
     }
   };

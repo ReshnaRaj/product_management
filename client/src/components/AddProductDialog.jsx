@@ -40,6 +40,8 @@ export default function AddProductDialog({
     images: [],
   });
 
+  const [removedImages, setRemovedImages] = useState([]);
+
   const handleVariantChange = (i, updated) => {
     const variants = [...product.variants];
     variants[i] = updated;
@@ -104,6 +106,7 @@ export default function AddProductDialog({
           qty: v.qty || v.quantity,
         })),
         images: product.images,
+        removedImages: JSON.stringify(removedImages),  
       });
 
       toast.success(isEditMode ? "Product updated" : "Product added");
@@ -140,16 +143,23 @@ export default function AddProductDialog({
 
   // Remove image handler
   const handleRemoveImage = (index) => {
-    setProduct((prev) => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index),
-      selectedImageIndex:
-        prev.selectedImageIndex === index
-          ? 0
-          : prev.selectedImageIndex > index
-          ? prev.selectedImageIndex - 1
-          : prev.selectedImageIndex,
-    }));
+    setProduct((prev) => {
+      const removed = prev.images[index];
+      // If it's a string (existing image), track it for removal
+      if (typeof removed === "string") {
+        setRemovedImages((imgs) => [...imgs, removed]);
+      }
+      return {
+        ...prev,
+        images: prev.images.filter((_, i) => i !== index),
+        selectedImageIndex:
+          prev.selectedImageIndex === index
+            ? 0
+            : prev.selectedImageIndex > index
+            ? prev.selectedImageIndex - 1
+            : prev.selectedImageIndex,
+      };
+    });
   };
 
   return (
